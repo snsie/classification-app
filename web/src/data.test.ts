@@ -34,7 +34,7 @@ describe("Model A reproduces every slide number", () => {
     for (const t of range(lo, hi)) expect(confusion(p, y, t)).toEqual(want);
   });
 
-  it("slide 13 and 21: accuracy 80%, precision 30.8%, F1 0.444", () => {
+  it("slides 7, 15 and 18: accuracy 80%, precision 30.8%, F1 0.444", () => {
     const m = metrics(confusion(p, y, 0.5));
     expect(m.acc).toBeCloseTo(0.8, 10);
     expect(m.sens).toBeCloseTo(0.8, 10);
@@ -46,7 +46,7 @@ describe("Model A reproduces every slide number", () => {
     expect(m.flagged).toBe(26);
   });
 
-  it("slide 22: 0.70 has 89% accuracy; flag counts 39 / 26 / 11", () => {
+  it("slide 20: 0.70 has 89% accuracy; flag counts 39 / 26 / 11", () => {
     expect(metrics(confusion(p, y, 0.7)).acc).toBeCloseTo(0.89, 10);
     expect(metrics(confusion(p, y, 0.3)).flagged).toBe(39);
     expect(metrics(confusion(p, y, 0.5)).flagged).toBe(26);
@@ -104,13 +104,13 @@ describe("metric edge cases", () => {
     expect(m.f1).toBe(0);
   });
 
-  it("flag everyone: recall 100%, precision 10% (slide 19 Q3)", () => {
+  it("flag everyone: recall 100%, precision 10% (§4 Quiz 3)", () => {
     const m = metrics(confusion(p, y, 0));
     expect(m.sens).toBe(1);
     expect(m.prec).toBeCloseTo(0.1, 12);
   });
 
-  it("§1: always-no accuracy equals 1 − prevalence", () => {
+  it("§2: always-no accuracy equals 1 − prevalence", () => {
     expect(metrics(counts(0, 5, 0, 95)).acc).toBeCloseTo(0.95, 12);
     expect(metrics(counts(0, 50, 0, 50)).acc).toBeCloseTo(0.5, 12);
   });

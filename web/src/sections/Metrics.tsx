@@ -84,6 +84,27 @@ export default function Metrics() {
         </div>
       </div>
 
+      <Card title="TPR and FPR: the two rates behind the ROC curve" sub="Both are shares of a row of the confusion matrix. We want TPR high and FPR low." chip={<DataChip />}>
+        <div className="grid-2">
+          <div>
+            <div className="stat-label">True positive rate (TPR)</div>
+            <div className="small ink2" style={{ margin: "4px 0" }}>Of the patients actually readmitted, what share did the model flag?</div>
+            <FormulaLine metric="tpr" counts={c} />
+            <div className="small ink2" style={{ marginTop: 6 }}>Same number as sensitivity and recall: three names, one metric.</div>
+          </div>
+          <div>
+            <div className="stat-label">False positive rate (FPR)</div>
+            <div className="small ink2" style={{ margin: "4px 0" }}>Of the patients not readmitted, what share got a false alarm?</div>
+            <FormulaLine metric="fpr" counts={c} />
+            <div className="small ink2" style={{ marginTop: 6 }}>FPR = 1 − specificity. Lower is better.</div>
+          </div>
+        </div>
+        <p className="small ink2" style={{ marginBottom: 0 }}>
+          Why two more names? The ROC curve (§8) plots TPR against FPR, so these are the terms you'll see on its axes. Careful: FPR is <i>not</i> “the share of
+          positive predictions that were wrong”; that is 1 − precision, with a different denominator.
+        </p>
+      </Card>
+
       <Card title="Precision depends on how common the outcome is" sub="Sensitivity and specificity held at 80%, as for Model A. Only the readmission rate changes." chip={<DataChip />}>
         <Toggle checked={whatIf} onChange={setWhatIf}>What if readmission were rarer?</Toggle>
         {whatIf && (

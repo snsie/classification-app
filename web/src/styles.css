@@ -183,6 +183,7 @@ svg text { font-family: var(--font); }
 
 .stage { max-width: 1180px; margin: 0 auto; padding: 32px 32px 80px; }
 .section-kicker { color: var(--accent); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+.kicker-slides { color: var(--muted); }
 .lede { font-size: 1.12rem; color: var(--ink-2); max-width: 62ch; margin-bottom: 1.4em; }
 .pager { display: flex; justify-content: space-between; margin-top: 40px; gap: 12px; }
 

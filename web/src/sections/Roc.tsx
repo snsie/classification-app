@@ -3,7 +3,7 @@ import { announceCounts, ConfusionMatrix, fmtT, ProbabilityStrip, RocPlot, Thres
 import { Callout, Card, DataChip, Stat, Toggle } from "../components/ui";
 import { auc, confusion, fmt, metrics, MODEL_A, rocPoints } from "../data";
 
-/** Slide 23 joins only these seven thresholds; the true staircase reaches TPR 1.0 at FPR 0.48. */
+/** Slide 21 joins only these seven thresholds; the true staircase reaches TPR 1.0 at FPR 0.48. */
 const SLIDE_POINTS = [
   { fpr: 0, tpr: 0 }, { fpr: 1 / 90, tpr: 0.2 }, { fpr: 6 / 90, tpr: 0.5 }, { fpr: 18 / 90, tpr: 0.8 },
   { fpr: 30 / 90, tpr: 0.9 }, { fpr: 54 / 90, tpr: 1 }, { fpr: 1, tpr: 1 },

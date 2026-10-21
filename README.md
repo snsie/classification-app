@@ -1,11 +1,33 @@
 # Classification Models
 
 An interactive walk-through of the M11 lecture *Classification Models: From a Probability to a Decision* (CAI5735).
-It has 17 sections, each with toggles, sliders and draggable thresholds, and is designed to be recorded for a video.
+It has 17 sections that follow the lecture deck (`M11_01_CAI5735_Classification_Intro.pptx`) slide by slide, each with toggles, sliders and draggable thresholds, and is designed to be recorded for a video.
 It is the sibling of last week's [Regression Models Explorer](https://github.com/snsie/regression-app).
 
-The slides send students to **§1** (the accuracy trap), **§6** (move the threshold), **§8** (the ROC curve), **§13** (cross-validation) and **§16** (model comparison).
-The homework is the **Try it** prompts in §1, §6 and §8.
+The slides send students to **§2** (the accuracy trap), **§6** (move the threshold), **§8** (the ROC curve), **§13** (cross-validation) and **§16** (model comparison).
+The homework is the **Try it** prompts in §2, §6 and §8.
+
+| § | Section | Slides |
+|---|---|---|
+| 1 | From a number to a category (objectives; regression vs classification; feature, target, class; probability → threshold → class) | 2–6 |
+| 2 | Accuracy, and the accuracy trap | 7–9 |
+| 3 | Positive, negative and the confusion matrix | 10–12 |
+| 4 | Each metric describes a different group (sensitivity, specificity, precision, TPR, FPR) | 13–17 |
+| 5 | F1, and what it leaves out | 18–19 |
+| 6 | Move the threshold | 20 |
+| 7 | Pick the threshold for the job | 20 |
+| 8 | The ROC curve | 21 |
+| 9 | AUROC is about ranking | 22 |
+| 10 | What AUROC does not tell you | 23 |
+| 11 | Last week's models, now as classifiers | 24 |
+| 12 | Logistic regression, a classifier despite its name | 25 |
+| 13 | Judge a model on patients it has not seen (training vs unseen; cross-validation vs test set) | 26–27 |
+| 14 | Five rules for a fair comparison | 28–29 |
+| 15 | Choose the threshold without peeking | 29 |
+| 16 | On real data, the models are often close | 30 |
+| 17 | Putting it together | 31 |
+
+Each section's header shows its slide range. `sections/index.ts` holds the order, and in development it checks that the cited sections haven't moved.
 
 Every model is trained ahead of time in Python. The React app only reads the resulting JSON, so it deploys as a static site with no server.
 The hypothetical running example, **Model A** (100 patients, 10 readmitted), is built deterministically in the browser so that every slide number reproduces exactly.
@@ -78,7 +100,7 @@ In development, every dataset's out-of-fold AUROCs and 0.50 confusion matrices a
 
 - Use **← / →** (or PageUp/PageDown) to move between sections, and **p** to toggle presenter mode (larger text).
   When a threshold handle or slider has focus, the arrow keys move the threshold instead.
-- Each section has its own URL, by name (`#/threshold`) or by the slides' number (`#/6`, `#/8`, `#/13`).
+- Each section has its own URL, by name (`#/threshold`) or by the slides' number (`#/2`, `#/6`, `#/8`, `#/13`). The old `#/hook` still opens §2.
 - The theme button cycles through auto, dark and light.
 - “Pause and think”, quiz and “Check your answers” boxes stay closed until you click **Reveal**.
 - Every interactive starts in the default state that reproduces the slide's numbers (for example §6 opens at 0.50: 26 flagged, 80% / 80%), so retakes match.

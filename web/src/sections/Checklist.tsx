@@ -20,7 +20,7 @@ const TASK: Record<DatasetId, { what: string; pos: string }> = {
 };
 
 const ITEMS: { text: string; sec: number }[] = [
-  { text: "Positive class named, and the “most common class for everyone” baseline computed", sec: 1 },
+  { text: "Positive class named, and the “most common class for everyone” baseline computed", sec: 2 },
   { text: "Confusion matrix read with its labels (rows actual, columns predicted)", sec: 3 },
   { text: "Metric chosen from the question: sensitivity, specificity, precision or F1", sec: 4 },
   { text: "Threshold chosen for the job (capacity, cost or target), not 0.50 by default", sec: 7 },
@@ -154,7 +154,7 @@ OUTPUT     Code + results table + confusion matrix at the chosen threshold. List
           )}
           <Card title="Before next session">
             <div className="small">
-              The <b>Try it</b> prompts in <a href="#/1">§1</a>, <a href="#/6">§6</a> and <a href="#/8">§8</a> (about 15 min) · Problem Set 14 · Quiz 14 on Canvas
+              The <b>Try it</b> prompts in <a href="#/2">§2</a>, <a href="#/6">§6</a> and <a href="#/8">§8</a> (about 15 min) · Problem Set 14 · Quiz 14 on Canvas
             </div>
           </Card>
           <Card title="Four questions, in order">

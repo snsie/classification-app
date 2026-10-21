@@ -5,8 +5,12 @@ import { confusion, fmt, fmtInt, fmtPct, LabData, metrics, MODEL_A, useData } fr
 
 type Rule = "always" | "modelA";
 
-export default function Hook() {
+// slide 7: ten predictions, eight right
+const TEN = [true, true, true, false, true, true, true, false, true, true];
+
+export default function Accuracy() {
   const lab = useData<LabData>("lab");
+  const [ten, setTen] = useState(TEN);
   const [guess, setGuess] = useState("");
   const [asked, setAsked] = useState(false);
   const [verified, setVerified] = useState(false);
@@ -18,6 +22,8 @@ export default function Hook() {
   const pred = rule === "always" ? y.map(() => 0) : MODEL_A.p.map((v) => (v >= 0.5 ? 1 : 0));
   const c = rule === "always" ? { tp: 0, fn: nPos, fp: 0, tn: 100 - nPos } : confusion(MODEL_A.p, MODEL_A.y, 0.5);
   const m = metrics(c);
+  const cA = confusion(MODEL_A.p, MODEL_A.y, 0.5);
+  const right = ten.filter(Boolean).length;
 
   if (!lab) return <Loading />;
   const h = lab.hook;
@@ -26,6 +32,75 @@ export default function Hook() {
 
   return (
     <div className="stack">
+      <div className="split-wide">
+        <Card title="Accuracy: the fraction of predictions that were correct" sub="First with counts. Click a prediction to mark it right or wrong.">
+          <div className="row" style={{ gap: 8 }} role="group" aria-label="Ten predictions">
+            {ten.map((ok, i) => (
+              <button key={i} className="btn" aria-pressed={ok} aria-label={`Prediction ${i + 1}: ${ok ? "right" : "wrong"}`}
+                onClick={() => setTen(ten.map((v, j) => (j === i ? !v : v)))}
+                style={{ width: 42, height: 42, padding: 0, fontSize: "1.2rem", fontWeight: 700, color: ok ? "var(--tp)" : "var(--fn)", borderColor: ok ? "var(--tp)" : "var(--fn)" }}>
+                {ok ? "✓" : "✗"}
+              </button>
+            ))}
+          </div>
+          <div className="formula" style={{ marginTop: 14 }}>
+            <b>Accuracy</b> = number of correct predictions ÷ number of predictions = {right} ÷ 10 = <span className="res">{right * 10}%</span>
+          </div>
+          <p className="small ink2" style={{ marginBottom: 0 }}>
+            A correct prediction is either a readmitted patient predicted “readmitted”, or a patient who was not readmitted predicted “not readmitted”.
+          </p>
+        </Card>
+        <Card title="Our running example: Model A" sub="A hypothetical model tested on 100 discharged patients, threshold 0.50" chip={<DataChip />}>
+          <div className="stat-value huge tnum">{fmtPct(metrics(cA).acc, 0)}</div>
+          <div className="stat-note">{cA.tp + cA.tn} of its 100 predictions were correct.</div>
+          <p className="small ink2" style={{ marginBottom: 0 }}>That sounds reasonable. Now compare it with a “model” that doesn't try at all.</p>
+        </Card>
+      </div>
+
+      <div className="split-wide">
+        <Card title="A model that finds no one can still be 90% accurate" sub="Same 100 patients: 10 readmitted, 90 not. The “always no” rule predicts “not readmitted” for everyone." chip={<DataChip />}>
+          <div className="controls-bar">
+            <Segmented label="Rule" value={rule} onChange={setRule}
+              options={[{ value: "always", label: "Always “not readmitted”" }, { value: "modelA", label: "Model A (0.50)" }]} />
+            <Slider label={<>Readmitted, out of 100 <span className="muted">(“always” rule only)</span></>} value={rule === "always" ? nPos : 10}
+              min={1} max={50} onChange={(v) => { setRule("always"); setNPos(v); }} width={320} />
+          </div>
+          <PatientWaffle y={y} pred={pred} arrangement="byCell" maxWidth={520} />
+          <div className="legend" style={{ marginTop: 8 }}>
+            <span className="legend-item"><span className="dot" style={{ background: "var(--ink-2)" }} /> filled = readmitted</span>
+            <span className="legend-item"><span className="dot" style={{ border: "2px solid var(--ink-2)" }} /> ring = not readmitted</span>
+            <span className="legend-item">TP / FN / FP / TN groups: see §3</span>
+          </div>
+        </Card>
+        <div className="stack">
+          <Stat label="Accuracy" value={fmtPct(m.acc, 0)} note={`${c.tp + c.tn} of 100 predictions correct`} />
+          <Stat label="Readmissions found" value={`${c.tp} of ${c.tp + c.fn}`} color={c.tp ? "var(--tp)" : "var(--fn)"} note={c.tp ? "flagged and readmitted" : "every readmission missed"} />
+          <Stat label="False alarms" value={c.fp} note="flagged, but not readmitted" />
+          <Callout><b>Class imbalance</b>: one class is much more common than the other. Here {100 - (rule === "always" ? nPos : 10)} of 100 patients were not readmitted.</Callout>
+        </div>
+      </div>
+
+      <Card title="Accuracy doesn't show which mistakes were made" sub="Higher accuracy, but no readmissions found. Lower accuracy, but 8 of 10 found." chip={<DataChip />}>
+        <div className="table-scroll">
+          <table className="data">
+            <thead>
+              <tr><th style={{ textAlign: "left" }}></th><th>“Always predict not readmitted”<div className="small muted">no model at all</div></th><th>Model A<div className="small muted">threshold 0.50</div></th></tr>
+            </thead>
+            <tbody>
+              <tr><td style={{ textAlign: "left" }}>Accuracy</td><td><b>90%</b></td><td>{fmtPct(metrics(cA).acc, 0)}</td></tr>
+              <tr><td style={{ textAlign: "left" }}>Readmissions found</td><td style={{ color: "var(--fn)" }}>0 of 10</td><td style={{ color: "var(--tp)" }}><b>{cA.tp} of {cA.tp + cA.fn}</b></td></tr>
+              <tr><td style={{ textAlign: "left" }}>False alarms</td><td>0</td><td style={{ color: "var(--fp)" }}>{cA.fp}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="small ink2">A <b>false alarm</b> is a patient predicted “readmitted” who was not readmitted.</p>
+        <div className="grid-2">
+          <Callout tone="good"><b>Accuracy can be useful</b> when the classes are roughly balanced and both kinds of mistake matter about equally.</Callout>
+          <Callout tone="warn"><b>But it cannot tell you</b> which mistakes the model makes, or whether it finds the outcome you care about. For that we need a confusion matrix (§3).</Callout>
+        </div>
+      </Card>
+
+      <div className="stat-label" style={{ marginTop: 6 }}>The same trap in real data</div>
       <div className="grid-2">
         <Card title="Before you ask" chip={<DataChip n={h.n} unit="discharges" />}>
           <p className="ink2" style={{ marginTop: 0 }}>
@@ -115,28 +190,6 @@ export default function Hook() {
         </Card>
       )}
 
-      <div className="split-wide">
-        <Card title="The same trap, 100 patients" chip={<DataChip />}>
-          <div className="controls-bar">
-            <Segmented label="Rule" value={rule} onChange={setRule}
-              options={[{ value: "always", label: "Always “not readmitted”" }, { value: "modelA", label: "Model A (0.50)" }]} />
-            <Slider label={<>Readmitted, out of 100 <span className="muted">(“always” rule only)</span></>} value={rule === "always" ? nPos : 10}
-              min={1} max={50} onChange={(v) => { setRule("always"); setNPos(v); }} width={320} />
-          </div>
-          <PatientWaffle y={y} pred={pred} arrangement="byCell" maxWidth={520} />
-          <div className="legend" style={{ marginTop: 8 }}>
-            <span className="legend-item"><span className="dot" style={{ background: "var(--ink-2)" }} /> filled = readmitted</span>
-            <span className="legend-item"><span className="dot" style={{ border: "2px solid var(--ink-2)" }} /> ring = not readmitted</span>
-            <span className="legend-item">TP / FN / FP / TN groups: see §3</span>
-          </div>
-        </Card>
-        <div className="stack">
-          <Stat label="Accuracy" value={fmtPct(m.acc, 0)} note={`${c.tp + c.tn} of 100 predictions correct`} />
-          <Stat label="Readmissions found" value={`${c.tp} of ${c.tp + c.fn}`} color={c.tp ? "var(--tp)" : "var(--fn)"} note={c.tp ? "flagged and readmitted" : "every readmission missed"} />
-          <Stat label="False alarms" value={c.fp} note="flagged, but not readmitted" />
-        </div>
-      </div>
-
       <div className="grid-3">
         <Quiz n={1} q="In a clinic, 5% of patients are readmitted. A model is 95% accurate. What simple rule scores the same?">
           Predicting “not readmitted” for everyone: 95 of 100 correct, and it finds no one. Always compare with that baseline.
@@ -151,42 +204,22 @@ export default function Hook() {
 
       <TryIt
         tasks={[
-          <>Enter your guess above, ask the assistant, then press <b>Show the verification</b>.</>,
           <>In the 100-patient card, switch the rule to <b>Model A (0.50)</b>. Which rule is more accurate, and which finds more readmissions?</>,
           <>Switch back and set <b>Readmitted, out of 100</b> to 5. What does “always no” score? And at 50?</>,
+          <>In “The same trap in real data”, enter your guess, ask the assistant, then press <b>Show the verification</b>.</>,
           <>Write one sentence explaining why the assistant's {fmtPct(h.acc, 0)} said almost nothing.</>,
         ]}
         answers={[
-          <>“Not readmitted” for everyone scores {fmtPct(h.always_no_acc, 1)} (1 − {fmtInt(h.n_pos)} ÷ {fmtInt(h.n)}). The assistant's model scores {fmtPct(h.acc, 1)} and
-            catches {fmtInt(h.counts.tp)} of {fmtInt(h.n_pos)}.</>,
           <>“Always no” is more accurate (90% vs 80%), but Model A finds more (8 vs 0 of 10).</>,
           <>95% with 5 readmitted; 50% with 50. Always-no accuracy is simply the share of patients who were not readmitted.</>,
+          <>“Not readmitted” for everyone scores {fmtPct(h.always_no_acc, 1)} (1 − {fmtInt(h.n_pos)} ÷ {fmtInt(h.n)}). The assistant's model scores {fmtPct(h.acc, 1)} and
+            catches {fmtInt(h.counts.tp)} of {fmtInt(h.n_pos)}.</>,
           <>For example: “Because {fmtPct(1 - h.prevalence, 0)} of patients weren't readmitted, answering ‘no’ for everyone already scores {fmtPct(h.always_no_acc, 0)}; the model matched that
             while finding almost none of the readmissions.”</>,
         ]}
       />
 
-      <div className="grid-2">
-        <Callout tone="good"><b>Reach for accuracy when…</b> the classes are roughly balanced and both kinds of mistake matter about equally.</Callout>
-        <Callout tone="warn"><b>Watch out for…</b> class imbalance. Always compute “most common class for everyone” first; with {fmtPct(h.prevalence, 0)} readmitted it already scores {fmtPct(h.always_no_acc, 0)}.</Callout>
-      </div>
-
-      <div className="grid-4">
-        {[
-          ["1", "Read the matrix", "TP, FN, FP, TN, and the metric each group of patients gives you.", "matrix"],
-          ["2", "Thresholds & ROC", "Move the cut-off, pick it for the job, and read ROC and AUROC.", "threshold"],
-          ["3", "Model families", "Last week's models as classifiers; logistic regression up close.", "classifiers"],
-          ["4", "Compare fairly", "Unseen data, no leaks, no peeking, and when a model really is better.", "cv"],
-        ].map(([n, t, d, link]) => (
-          <a key={n} href={`#/${link}`} className="card" style={{ textDecoration: "none", color: "inherit" }}>
-            <div className="row" style={{ gap: 10, marginBottom: 6, flexWrap: "nowrap" }}>
-              <span className="badge-num">{n}</span>
-              <b>{t}</b>
-            </div>
-            <div className="small ink2">{d}</div>
-          </a>
-        ))}
-      </div>
+      <Callout tone="warn"><b>A good habit:</b> before trusting any accuracy number, compute what you'd get by predicting the most common class for everyone. With {fmtPct(h.prevalence, 0)} readmitted it already scores {fmtPct(h.always_no_acc, 0)}.</Callout>
       <SourceNote>
         Real data: UCI Diabetes 130-US hospitals (Strack et al. 2014), one discharge per patient, {fmtInt(h.n)} sampled. “The assistant's model” is LightGBM with default
         settings; each patient's prediction comes from 5-fold cross-validation, so no patient was scored by a model trained on them. The chat is illustrative; the

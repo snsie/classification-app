@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SECTIONS } from "./sections";
+import { ALIASES, SECTIONS } from "./sections";
 
 /** `#/threshold` or the slides' numeric form `#/6` (= the sixth section). */
 function currentId() {
@@ -8,7 +8,8 @@ function currentId() {
     const i = Number(raw) - 1;
     if (i >= 0 && i < SECTIONS.length) return SECTIONS[i].id;
   }
-  return SECTIONS.some((s) => s.id === raw) ? raw : SECTIONS[0].id;
+  const id = ALIASES[raw] ?? raw;
+  return SECTIONS.some((s) => s.id === id) ? id : SECTIONS[0].id;
 }
 
 type Theme = "auto" | "light" | "dark";
@@ -85,7 +86,8 @@ export default function App() {
           return (
             <div key={s.id}>
               {head}
-              <button className={`nav-item ${i === idx ? "active" : ""}`} onClick={() => go(i)} aria-current={i === idx ? "page" : undefined}>
+              <button className={`nav-item ${i === idx ? "active" : ""}`} onClick={() => go(i)} aria-current={i === idx ? "page" : undefined}
+                title={`Slide${s.slides.includes("–") ? "s" : ""} ${s.slides}`}>
                 <span className="nav-num">{i + 1}</span>
                 <span>{s.title}</span>
                 {s.tryIt && <span className="nav-try" title="Homework: the Try it prompts in this section">Try it</span>}
@@ -96,7 +98,7 @@ export default function App() {
         <div className="sidebar-foot">
           <kbd>←</kbd> <kbd>→</kbd> move between sections · <kbd>p</kbd> presenter mode
           <br />
-          Homework: <b>Try it</b> in §1, §6 and §8
+          Homework: <b>Try it</b> in §2, §6 and §8
           <br />
           <a href="#/checklist" onClick={() => setMenuOpen(false)}>Data sources &amp; reproducibility</a>
         </div>
@@ -127,7 +129,7 @@ export default function App() {
 
         <main className="stage" key={section.id}>
           <div className="section-kicker">
-            {section.part} · {idx + 1}
+            {section.part} · {idx + 1} <span className="kicker-slides">· slide{section.slides.includes("–") ? "s" : ""} {section.slides}</span>
           </div>
           <h1>{section.title}</h1>
           {section.lede && <p className="lede">{section.lede}</p>}

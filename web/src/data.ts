@@ -471,7 +471,7 @@ export function pairOrder(nPos: number, nNeg: number, stride = 433): [number, nu
 /** The pipeline stores out-of-fold probabilities as integers in 1/10,000. */
 export const decodeP = (ints: ArrayLike<number>) => Float64Array.from(ints as ArrayLike<number>, (v) => v / 10000);
 
-// ---------- Model A: the hypothetical running example from slides 7–26 ----------
+// ---------- Model A: the hypothetical running example from slides 7–23 ----------
 /** [lo, hi, nReadmitted, nNot] with probabilities in thousandths. */
 const BANDS: [number, number, number, number][] = [
   [850, 1000, 2, 1], [700, 850, 3, 5], [500, 700, 3, 12], [300, 500, 1, 12], [150, 300, 1, 24], [0, 150, 0, 36],

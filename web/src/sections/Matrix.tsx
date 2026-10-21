@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
-import { CellKey, ConfusionMatrix, FormulaLine, PatientWaffle, WaffleArrangement } from "../charts/classify";
+import { CELL_ABBR, CELL_NAME, CellKey, ConfusionMatrix, FormulaLine, PatientWaffle, WaffleArrangement } from "../charts/classify";
 import { Callout, Card, DataChip, PauseThink, Segmented } from "../components/ui";
 import { confusion, MODEL_A } from "../data";
 
 type View = "discharge" | "later" | "sorted";
 const VIEWS: View[] = ["discharge", "later", "sorted"];
+
+// slide 11: what each of the four results means
+const MEANING: Record<CellKey, (pos: string) => string> = {
+  tp: (pos) => `The model predicted ${pos}, and the patient was ${pos}.`,
+  fn: (pos) => `The model predicted not ${pos}, but the patient was ${pos}. A missed case.`,
+  fp: (pos) => `The model predicted ${pos}, but the patient was not ${pos}. A false alarm.`,
+  tn: (pos) => `The model predicted not ${pos}, and the patient was not ${pos}.`,
+};
 
 export default function Matrix() {
   const [view, setView] = useState<View>("sorted");
@@ -39,6 +47,25 @@ export default function Matrix() {
 
   return (
     <div className="stack">
+      <div className="split-wide">
+        <Card title="“Positive” means the outcome we are looking for" sub="To see which mistakes a model makes, first name the two classes.">
+          <div className="grid-2">
+            <div className="callout"><b>Positive class</b>: {flip ? "Not readmitted" : "Readmitted within 30 days"}. The outcome of interest: the event we want the model to find.</div>
+            <div className="callout"><b>Negative class</b>: {flip ? "Readmitted" : "Not readmitted"}. Every other patient.</div>
+          </div>
+          <p className="small ink2" style={{ marginBottom: 0 }}>
+            “Positive” does not mean good. Like a positive test result, it means the thing we were looking for was found, which is often bad news for the patient.
+          </p>
+        </Card>
+        <Card title="Every patient has two outcomes">
+          <div className="stack" style={{ gap: 8 }}>
+            <div><b>Actual outcome</b> <span className="small ink2">What really happened. Known only after the 30 days have passed.</span></div>
+            <div><b>Predicted outcome</b> <span className="small ink2">What the model said at discharge, after applying the threshold.</span></div>
+          </div>
+          <p className="small ink2" style={{ marginBottom: 0 }}>Comparing the two, patient by patient, gives only four possible results. Step through them with <b>Show patients</b> below.</p>
+        </Card>
+      </div>
+
       <div className="controls-bar">
         <Segmented label="Show patients" value={view} onChange={(v) => { setReplay(false); setView(v); }}
           options={[{ value: "discharge", label: "At discharge" }, { value: "later", label: "30 days later" }, { value: "sorted", label: "Sorted into the grid" }]} />
@@ -64,6 +91,9 @@ export default function Matrix() {
         <div className="stack">
           <Card title="The confusion matrix" sub={layout === "course" ? "Rows: what actually happened. Columns: what the model predicted." : "scikit-learn's order: negatives first, so TN is top-left."}>
             <ConfusionMatrix counts={c} layout={layout} posLabel={pos} negLabel={neg} onCellHover={setHover} hoverCell={hover} />
+            <div className="small ink2" style={{ marginTop: 8, minHeight: "2.6em" }} aria-live="polite">
+              {hover ? <><b>{CELL_NAME[hover]} ({CELL_ABBR[hover]})</b>: {MEANING[hover](pos)}</> : "Hover or focus a cell to read what it means. Correct results (TP, TN) sit on the diagonal; the two errors usually have different costs."}
+            </div>
           </Card>
           <Card>
             <div className="stat-label">Accuracy from the matrix</div>

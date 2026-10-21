@@ -18,6 +18,16 @@ const PRESETS: { label: string; s: State }[] = [
   { label: "…SMOTE inside each training fold", s: { pipe: "readmission", model: "gbm", unseen: true, dropLeaky: true, resample: "inside", byPatient: true } },
 ];
 
+// slide 28, with the section that shows each rule
+const RULES: [string, string, string][] = [
+  ["Same splits, same metrics.", "Every model is trained and scored on the same folds, with the same metrics.", "compare"],
+  ["Preprocessing and choices inside training.", "Fill in missing values, scale features and tune settings using training data only, inside each cross-validation round.", "leakage"],
+  ["Test set last, and once.", "Keep the test set locked until the final evaluation.", "cv"],
+  ["Keep each patient together.", "If a patient has several admissions, all of them go in the same split. Otherwise the model is tested on people it has already seen.", "leakage"],
+  ["Choose the metric and threshold for the task.", "Decide before looking at results, based on what each kind of error costs.", "peeking"],
+];
+const SECTION_NUM: Record<string, number> = { cv: 13, peeking: 15, compare: 16 };
+
 const RESAMPLE_LABEL: Record<Resample, string> = { before: "SMOTE before the split", inside: "SMOTE inside each fold", none: "No resampling" };
 
 export default function Leakage() {
@@ -71,13 +81,25 @@ export default function Leakage() {
 
   return (
     <div className="stack">
+      <Card title="Five rules for a fair model comparison">
+        <div className="stack" style={{ gap: 8 }}>
+          {RULES.map(([t, d, link], i) => (
+            <div key={t} className="row" style={{ gap: 10, flexWrap: "nowrap", alignItems: "flex-start" }}>
+              <span className="badge-num">{i + 1}</span>
+              <div><b>{t}</b> <span className="ink2">{d}</span> {link && <a href={`#/${link}`} className="small" style={{ whiteSpace: "nowrap" }}>{link === "leakage" ? "below ↓" : `see §${SECTION_NUM[link]} →`}</a>}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <div className="stat-label" style={{ marginTop: 6 }}>What breaks without them: the assistant's pipeline</div>
       <div className="controls-bar">
         <Segmented label="Pipeline" value={s.pipe} onChange={set("pipe")}
           options={[{ value: "diabetes", label: "Diabetes screening" }, { value: "readmission", label: "30-day readmission (every encounter)" }]} />
         <Segmented label="Model" value={s.model} onChange={set("model")} options={[{ value: "rf", label: "Random forest" }, { value: "gbm", label: "Gradient boosting" }]} />
       </div>
       <div className="row small" style={{ gap: 6 }}>
-        <span className="muted">Slide 32's pairs:</span>
+        <span className="muted">Slide 29's pairs:</span>
         <div className="presets">
           {PRESETS.map((p) => (
             <button key={p.label} aria-pressed={JSON.stringify(p.s) === JSON.stringify(s)} onClick={() => setS(p.s)}>{p.label}</button>
@@ -149,7 +171,7 @@ export default function Leakage() {
       </PauseThink>
 
       <div className="split-wide">
-        <Card title="Unfair comparisons make weak models look strong" sub="Slide 32's pairs. Grey: scored unfairly. Navy: the same model scored fairly. Bars start at 0.5 (chance)."
+        <Card title="Unfair comparisons make weak models look strong" sub="Slide 29's pairs. Grey: scored unfairly. Navy: the same model scored fairly. Bars start at 0.5 (chance)."
           chip={<span className="data-chip real">real data · 3 pipelines</span>}>
           <div className="stack" style={{ gap: 14 }}>
             {lab.unfair.map((u) => (

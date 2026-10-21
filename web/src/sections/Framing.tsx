@@ -19,6 +19,20 @@ const CLASS_STYLE: Record<string, React.CSSProperties> = {
   "Nursing facility": { background: "color-mix(in srgb, var(--m-tabicl) 18%, var(--surface))", color: "var(--ink)", border: "1.5px dotted var(--m-tabicl)" },
 };
 
+// slide 2: the four objectives, with the sections that cover each
+const OBJECTIVES = [
+  { t: "Connect regression to classification", d: "Features, targets and classes; probabilities and thresholds.", link: "framing", secs: "§1" },
+  { t: "Use accuracy, and know its limits", d: "Why a model that finds no one can still score 90%.", link: "accuracy", secs: "§2" },
+  { t: "Read a confusion matrix", d: "Sensitivity (recall), specificity, precision, TPR, FPR, F1 and AUROC.", link: "matrix", secs: "§3–10" },
+  { t: "Compare models fairly", d: "Same splits, unseen data, no leaks; when one model really is better.", link: "classifiers", secs: "§11–17" },
+];
+
+const SAME = [
+  ["Input features", "Information about each patient"],
+  ["Examples with known outcomes", "Past patients teach the model a pattern"],
+  ["A prediction for a new patient", "Judged on patients the model has not seen"],
+];
+
 export default function Framing() {
   const [hl, setHl] = useState<Hl>("features");
   const [multi, setMulti] = useState(false);
@@ -34,6 +48,50 @@ export default function Framing() {
 
   return (
     <div className="stack">
+      <div>
+        <div className="stat-label" style={{ marginBottom: 8 }}>By the end of this lesson, you can…</div>
+        <div className="grid-4">
+          {OBJECTIVES.map((o, i) => (
+            <a key={o.link} href={`#/${o.link}`} className="card" style={{ textDecoration: "none", color: "inherit" }}>
+              <div className="row" style={{ gap: 10, marginBottom: 6, flexWrap: "nowrap" }}>
+                <span className="badge-num">{i + 1}</span>
+                <b>{o.t}</b>
+              </div>
+              <div className="small ink2">{o.d}</div>
+              <div className="small muted" style={{ marginTop: 6 }}>{o.secs}</div>
+            </a>
+          ))}
+        </div>
+        <p className="small muted" style={{ margin: "8px 0 0" }}>One running example throughout: predicting whether a patient will be readmitted within 30 days.</p>
+      </div>
+
+      <Card title="Regression predicts a number; classification a category" sub="Last week the outcome was a number. This week it is a category.">
+        <div className="grid-2">
+          <div className="card" style={{ background: "var(--surface-2)" }}>
+            <div className="stat-label">Last week · regression</div>
+            <div style={{ fontWeight: 550, margin: "4px 0" }}>“How many days will this patient stay in hospital?”</div>
+            <div className="stat-value tnum">5.2 days</div>
+            <div className="stat-note">A number on a continuous scale</div>
+          </div>
+          <div className="card" style={{ background: "var(--surface-2)" }}>
+            <div className="stat-label">This week · classification</div>
+            <div style={{ fontWeight: 550, margin: "4px 0" }}>“Will this patient be readmitted within 30 days?”</div>
+            <div className="row" style={{ gap: 8, margin: "6px 0" }}>
+              <span className="chip" style={CLASS_STYLE.Readmitted}>Readmitted</span>
+              <span className="muted">or</span>
+              <span className="chip" style={CLASS_STYLE["Not readmitted"]}>Not readmitted</span>
+            </div>
+            <div className="stat-note">One of a fixed set of categories</div>
+          </div>
+        </div>
+        <div className="stat-label" style={{ margin: "14px 0 6px" }}>What stays the same</div>
+        <div className="grid-3">
+          {SAME.map(([t, d]) => (
+            <div key={t} className="callout"><b>{t}</b>: {d.charAt(0).toLowerCase() + d.slice(1)}.</div>
+          ))}
+        </div>
+      </Card>
+
       <Card title="Three words to know: feature, target and class" sub="A few past patients: the kind of table a classifier learns from (hypothetical values)" chip={<DataChip />}>
         <div className="controls-bar">
           <Segmented label="Highlight" value={hl} onChange={setHl}
